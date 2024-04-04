@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Alunos</title>
+    <!-- Adicione o SDK do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link rel="icon" type="image/png" href="logoJV.png">
+    <script>
+        // Configurações do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6mPcUShe2Gty4o2ZoAXouzuGJ8m8U9lI",
+            authDomain: "jv-presente.firebaseapp.com",
+            databaseURL: "https://jv-presente-default-rtdb.firebaseio.com",
+            projectId: "jv-presente",
+            storageBucket: "jv-presente.appspot.com",
+            messagingSenderId: "565379728946",
+            appId: "1:565379728946:web:bda7f5491e13aaf09c9e2b",
+            measurementId: "G-XSY1F1J987"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        </script>
+    <style>
+        body {
+            margin-top: 0px;
+            margin-left: 0px;
+            margin-right: 0px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            border: 1px solid #c4bebe;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .existente {
+            color: red;
+        }
+
+        .nao-existente {
+            color: green;
+        }
+
+        .mensagem-erro {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="width: 100%; height:100px; background: blue; display: flex; flex-direction: row; justify-content: space-around; align-items: center;">
+        <img style="border-radius: 15px; height: 90px;" src="lit.png">
+        <h1 style="text-align: center; font-size: 60pt; margin-top:40px; font-family:'Arial'; color:rgb(223, 212, 212);">José Vasques Ferrari</h1>
+        <img style="border-radius: 15px;  height: 90px;" src="logoJV.png">
+    </div>
+    <div style="margin-top: 20px; border-top-left-radius: 15px; border-top-right-radius: 15px; display: flex; flex-direction: row; align-items: center; justify-content: center; background-color: rgb(182, 243, 179);">
+        <label for="inputProcurarAluno">Procurar aluno no sistema:</label>
+        <input id="inputProcurarAluno" placeholder="Ex: Geann Luckas Cardozo Almeida" style="margin-right: 10px;" type="text">
+        <button style="margin-right: 30px;" onclick="procurarAluno()">Procurar</button>
+        <label for="nome">Nome:</label>
+        <input placeholder="Ex: João Vitor França" type="text" id="nome">
+        <label style="margin-left: 20px;" for="ra">RA:</label>
+        <input placeholder="Ex: 000114918566sp" style="width: 130px;" type="text" id="ra">
+        <label style="margin-left: 30px; margin-right: 5px;" for="serie">Série:</label>
+        <input type="text" style="width: 42px; margin-right: 10px;" placeholder="Ex: 2B" id="serie">
+        <label for="no_pai" style="margin-right: 5px; margin-left: 20px;">Local:</label>
+        <select id="no_pai">
+            <!-- Opções de seleção serão adicionadas dinamicamente aqui -->
+        </select>
+        <button style="margin-left: 15px;" onclick=" openModal()">Adicionar Aluno</button>
+
+
+
+
+
+
+
+
+
+
+
+        <style>
+            /* Estilos para o modal */
+            .modal {
+              display: none; /* Oculta por padrão */
+              position: fixed; /* Fixa a posição */
+              z-index: 1; /* Coloca o modal acima de outros elementos */
+              left: 0;
+              top: 0;
+              width: 100%; /* Largura total */
+              height: 100%; /* Altura total */
+              overflow: auto; /* Adiciona rolagem se necessário */
+              background-color: rgba(0,0,0,0.4); /* Fundo escuro com transparência */
+  
+
+            }
+            
+            /* Estilos para o conteúdo do modal */
+            .modal-content {
+                display: flex;
+              flex-direction: column;
+              align-items: center;
+              background-color: #fefefe; /* Cor do fundo */
+              margin: 15% auto; /* Centraliza verticalmente */
+              padding: 20px;
+              border: 1px solid #888;
+              width: 55%; /* Largura */
+              position: relative;
+            }
+            
+            /* Estilos para o botão de fechar */
+            .close {
+            position: absolute;
+            right: 10px;
+            top:10px;
+              color: #aaa;
+              float: right;
+              font-size: 28px;
+              font-weight: bold;
+            }
+            
+            .close:hover,
+            .close:focus {
+              color: black;
+              text-decoration: none;
+              cursor: pointer;
+            }
+            </style>
+
+<!-- Botão para abrir o modal 
+ghghghghghghghghghghghghghghghghghghghghgh
+ghghghghghghgh
+ghghghghghghgh
+ghghghghghghgh
+ghghghghghghgh
+ghghghghghghgh
+ghghghghghghgh
+ghghghghghghgh
+ghghghghghghghghghghghghghgh
+ O modal -->
+
+
+
+<!-- O modal -->
+<div id="myModal" class="modal">
+    <!-- Conteúdo do modal -->
+    <div class="modal-content">
+     <!-- <span class="close" onclick="closeModal()">&times;</span>-->         <!-- Botão de fechar -->
+      <!-- Remova o botão "Registrar aluno" daqui -->
+      <img id ="fun" style="width: 600px; height: 300px;" src="digital neutro.gif">
+      <h2 id="t" style="font-family: Arial, Helvetica, sans-serif; text-align: justify; color: #505050;">O sensor de biometria entrou no modo de cadastro! Por favor coloque o seu dedo no sensor.</h2>
+    </div>
+  </div>
+  
+  <script>
+  // Função para abrir o modal
+  
+  
+    // Função para abrir o modal
+   // Função para abrir o modal
+// Função para abrir o modal
+function openModal() {
+    const no_pai = document.getElementById('no_pai').value;
+    const numeroSemPrefixo = parseInt(no_pai.slice(1)); // Removendo o prefixo "A" e convertendo para inteiro
+
+    // Atualiza o valor do nó "adicionar" no Firebase como um número inteiro
+    const envia = firebase.database().ref("ponto_geral");
+    envia.child("chaveT").set("cadastrar");
+    envia.child("adicionar").set(numeroSemPrefixo);
+
+    document.getElementById("myModal").style.display = "block";
+    verificarConfirmacao(numeroSemPrefixo); // Enviar o número sem prefixo para a função
+}
+
+
+
+    // Função para verificar se a confirmação foi aceita no Firebase
+    function verificarConfirmacao(numeroSemPrefixo) {
+        const envia = firebase.database().ref("ponto_geral");
+        envia.child("chaveT").set("cadastrar");
+        envia.child("adicionar").set(numeroSemPrefixo);
+
+        const pontoGeralRef = firebase.database().ref("ponto_geral");
+        pontoGeralRef.child("confirmacao").on('value', function(snapshot) {
+            const confirmacao = snapshot.val();
+            if (confirmacao === "aceito") {
+                // Chame a função para registrar o aluno quando a confirmação for aceita
+                const envia = firebase.database().ref("ponto_geral");
+                envia.child("confirmacao").set("Nada");
+                adicionarAluno();
+                const t = document.getElementById('t');
+                t.innerText = "A sua digital foi cadastrada!";
+                const myImage = document.getElementById('fun');
+                const novaImagem = 'digital aceita.gif';
+                myImage.src = novaImagem;
+                setTimeout(function() {
+                    closeModal();
+                }, 9500);
+            } else if (confirmacao === "negado") {
+                const myImage = document.getElementById('fun');
+                const t = document.getElementById('t');
+                t.innerText = "Tente novamente";
+                const novaImagem = 'digital nega.gif';
+                myImage.src = novaImagem;
+                setTimeout(function() {
+                    t.innerText = "Por favor encoste o dedo novamente no sensor!";
+                    myImage.src = 'digital neutro.gif';
+                }, 10000);
+            } else {
+                const t = document.getElementById('t');
+                t.innerText = "Por favor encoste o dedo no sensor!";
+                const myImage = document.getElementById('fun');
+                myImage.src = 'digital neutro.gif';
+            }
+        });
+    }
+
+    // Função para fechar o modal
+    function closeModal() {
+        document.getElementById("myModal").style.display = "none";
+    }
+
+    // Fecha o modal se o usuário clicar fora dele
+    window.onclick = function(event) {
+        var modal = document.getElementById("myModal");
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+
+
+
+  
+  // Função para verificar se a confirmação foi aceita no Firebase
+  function verificarConfirmacao() {
+
+    const envia = firebase.database().ref("ponto_geral");
+    envia.child("chaveT").set("cadastrar");
+
+
+      const pontoGeralRef = firebase.database().ref("ponto_geral");
+      pontoGeralRef.child("confirmacao").on('value', function(snapshot) {
+          const confirmacao = snapshot.val();
+          if (confirmacao === "aceito") {
+              // Chame a função para registrar o aluno quando a confirmação for aceita
+              const envia = firebase.database().ref("ponto_geral");
+    envia.child("confirmacao").set("Nada");
+              adicionarAluno();
+              const t = document.getElementById('t');
+t.innerText="A sua digital foi cadastrada!";
+// Obtém a referência para a tag <img> pelo id
+const myImage = document.getElementById('fun');
+
+// Define o novo valor para o atributo src
+const novaImagem = 'digital aceita.gif';
+
+// Altera dinamicamente o atributo src
+myImage.src = novaImagem;
+
+              setTimeout(function() {
+closeModal()
+}, 9500);
+          }
+
+else if(confirmacao === "negado"){
+
+// Obtém a referência para a tag <img> pelo id
+const myImage = document.getElementById('fun');
+
+const t = document.getElementById('t');
+t.innerText="Tente novamente";
+// Define o novo valor para o atributo src
+const novaImagem = 'digital nega.gif';
+
+// Altera dinamicamente o atributo src
+myImage.src = novaImagem;
+
+setTimeout(function() {
+    const t = document.getElementById('t');
+t.innerText="Por favor encoste o dedo novamente no sensor!";
+
+const myImage = document.getElementById('fun');
+
+// Define o novo valor para o atributo src
+const novaImagem = 'digital neutro.gif';
+
+// Altera dinamicamente o atributo src
+myImage.src = novaImagem;
+
+}, 10000);
+}
+else{
+    const t = document.getElementById('t');
+t.innerText="Por favor encoste o dedo no sensor!";
+
+const myImage = document.getElementById('fun');
+
+// Define o novo valor para o atributo src
+const novaImagem = 'digital neutro.gif';
+
+// Altera dinamicamente o atributo src
+myImage.src = novaImagem;
+}
+
+
+
+
+
+
+
+
+      });
+  }
+  
+  // Função para fechar o modal
+  function closeModal() {
+    document.getElementById("myModal").style.display = "none";
+  }
+  
+  // Fecha o modal se o usuário clicar fora dele
+  window.onclick = function(event) {
+    var modal = document.getElementById("myModal");
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  }
+  </script>
+  
+
+
+
+
+
+
+        <p id="mensagemErro" class="mensagem-erro" style="display: none;"></p>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <div id="informacoesAluno"></div>
+    </div>
+    <table id="tabelaAlunos" class="tabela-principal">
+        <thead>
+            <tr>
+                <th>Local</th>
+                <th>Nome do aluno no registro</th>
+                <th>RA usado pelo aluno</th>
+                <th>Série de alocação</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody style="background: rgb(148, 185, 208); text-align: center; font-family: 'Isaque'; font-size: 13pt;" id="tabelaCorpo">
+        </tbody>
+    </table>
+
+    <!-- Tabela de Informações do Aluno -->
+    <table id="tabelaInformacoesAluno" class="tabela-secundaria">
+        <!-- Conteúdo da tabela de informações do aluno será adicionado dinamicamente -->
+    </table>
+
+ 
+
+<script>
+        // Inicializa o Firebase
+        const database = firebase.database();
+
+        // Função para adicionar um novo aluno
+        function adicionarAluno() {
+            const nome = document.getElementById('nome').value;
+            const ra = document.getElementById('ra').value;
+            const serie = document.getElementById('serie').value;
+            const no_pai = document.getElementById('no_pai').value;
+
+            // Verifica se o nó correspondente à vaga está vazio
+            database.ref('ALUNOS-NO-SISTEMA/' + no_pai).once('value', function(snapshot) {
+                if (snapshot.exists()) {
+                    // Se o nó existir, significa que a vaga está ocupada
+                    document.getElementById('mensagemErro').textContent = 'A vaga ' + no_pai + ' já está ocupada.';
+                    document.getElementById('mensagemErro').style.display = 'block';
+                } else {
+                    // Se o nó não existir, adiciona o novo aluno
+                    database.ref('ALUNOS-NO-SISTEMA/' + no_pai).set({
+                        'Nome': nome,
+                        'RA': ra,
+                        'Serie': serie
+                    }, function(error) {
+                        if (error) {
+                            console.error("Erro ao adicionar aluno:", error);
+                        } else {
+                            console.log("Aluno adicionado com sucesso!");
+                            // Limpa os campos do formulário
+                            document.getElementById('nome').value = '';
+                            document.getElementById('ra').value = '';
+                            document.getElementById('serie').value = '';
+                            document.getElementById('mensagemErro').style.display = 'none';
+                            // Atualiza a lista de alunos e nós pais
+                            carregarAlunos();
+                        }
+                    });
+                }
+            });
+        }
+
+// Função para excluir um aluno
+function excluirAluno(no_pai) {
+    // Extrai apenas os números do identificador do nó pai e converte para inteiro
+    const numeroNoPai = parseInt(no_pai.replace(/\D/g, ''));
+
+    // Remove o nó filho específico em 'ALUNOS-NO-SISTEMA'
+
+    database.ref('ALUNOS-NO-SISTEMA/' + no_pai).remove();
+
+    // Passa o número do nó pai para o nó "apagar" em "ponto_geral"
+    const pontoGeralRef = firebase.database().ref("ponto_geral");
+    pontoGeralRef.child("apagar").set(numeroNoPai);
+    pontoGeralRef.child("chaveT").set("deletar");
+
+    // Atualiza a lista de alunos e nós pais
+    carregarAlunos();
+    // Remove a tabela de informações do aluno pesquisado
+    document.getElementById('informacoesAluno').innerHTML = '';
+}
+
+
+
+        // Função para procurar um aluno
+        function procurarAluno() {
+            const nomeProcurado = document.getElementById('inputProcurarAluno').value.trim();
+
+            // Verifica se o campo de busca está vazio
+            if (nomeProcurado === "") {
+                alert('Por favor, insira um nome para procurar.');
+                return;
+            }
+
+            // Procura pelo aluno no sistema
+            database.ref('ALUNOS-NO-SISTEMA').once('value', function(snapshot) {
+                let alunoEncontrado = false;
+                snapshot.forEach(function(childSnapshot) {
+                    const no_pai = childSnapshot.key;
+                    const aluno = childSnapshot.val();
+                    if (aluno.Nome === nomeProcurado || aluno.RA === nomeProcurado) {
+                        alunoEncontrado = true;
+                        exibirInformacoesAluno(no_pai, aluno);
+                    }
+                });
+                if (!alunoEncontrado) {
+                    document.getElementById('informacoesAluno').innerHTML = '<p class="mensagem-erro">O aluno ' + nomeProcurado + ' não está registrado no sistema.</p>';
+                }
+            });
+        }
+
+        // Função para exibir informações de um aluno na tabela
+        function exibirInformacoesAluno(no_pai, aluno) {
+            const informacoesAluno = document.getElementById('informacoesAluno');
+
+            // Limpa as informações do aluno pesquisado antes de exibir novas
+            informacoesAluno.innerHTML = '';
+
+            // Cria uma tabela para mostrar as informações do aluno
+            const tabelaAluno = document.createElement('table');
+            tabelaAluno.classList.add('informacoes-aluno');
+
+            // Cria uma linha para o cabeçalho da tabela
+            const cabecalhoRow = tabelaAluno.insertRow();
+            const cabecalhoNome = cabecalhoRow.insertCell(0);
+            cabecalhoNome.textContent = 'Nome';
+            cabecalhoNome.style.backgroundColor = 'lightgreen'; // Cor verde claro
+            const cabecalhoRA = cabecalhoRow.insertCell(1);
+            cabecalhoRA.textContent = 'RA';
+            cabecalhoRA.style.backgroundColor = 'lightgreen'; // Cor verde claro
+            const cabecalhoSerie = cabecalhoRow.insertCell(2);
+            cabecalhoSerie.textContent = 'Série';
+            cabecalhoSerie.style.backgroundColor = 'lightgreen'; // Cor verde claro
+            const cabecalhoNoPai = cabecalhoRow.insertCell(3); // Célula para o nó pai
+            cabecalhoNoPai.textContent = 'Local';
+            cabecalhoNoPai.style.backgroundColor = 'lightgreen'; // Cor verde claro
+
+            // Cria uma linha para os dados do aluno
+            const dadosRow = tabelaAluno.insertRow();
+            const dadosNome = dadosRow.insertCell(0);
+            dadosNome.textContent = aluno.Nome;
+            const dadosRA = dadosRow.insertCell(1);
+            dadosRA.textContent = aluno.RA || 'RA não disponível';
+            const dadosSerie = dadosRow.insertCell(2);
+            dadosSerie.textContent = aluno.Serie || 'Série não disponível';
+            const dadosNoPai = dadosRow.insertCell(3); // Célula para o nó pai
+            dadosNoPai.textContent = no_pai; // Adiciona o nó pai
+
+            // Adiciona a tabela de informações do aluno à div
+            informacoesAluno.appendChild(tabelaAluno);
+
+            // Adiciona um botão para remover o aluno pesquisado
+            const removerButton = document.createElement('button');
+            removerButton.textContent = 'Remover';
+            removerButton.onclick = function() {
+                excluirAluno(no_pai);
+            };
+
+            // Adiciona o botão de remover à div
+            informacoesAluno.appendChild(removerButton);
+
+            // Adiciona um botão para fechar a tabela de informações do aluno pesquisado
+            const fecharButton = document.createElement('button');
+            fecharButton.textContent = 'X';
+            fecharButton.onclick = function() {
+                informacoesAluno.innerHTML = '';
+            };
+
+            // Adiciona o botão de fechar à div
+            informacoesAluno.appendChild(fecharButton);
+        }
+
+        // Função para carregar os alunos e nós pais do Firebase
+        function carregarAlunos() {
+            const tabelaCorpo = document.getElementById('tabelaCorpo');
+            const selectNoPai = document.getElementById('no_pai');
+
+            // Limpa a tabela antes de recarregar
+            tabelaCorpo.innerHTML = '';
+            selectNoPai.innerHTML = '';
+
+            // Obtém os dados de todos os nós pais de A1 até A320
+            for (let i = 1; i <= 320; i++) {
+                const no_pai = 'A' + i;
+                const option = document.createElement('option');
+                option.value = no_pai;
+                option.textContent = no_pai;
+                selectNoPai.appendChild(option);
+
+                // Verifica se o nó pai existe
+                database.ref('ALUNOS-NO-SISTEMA/' + no_pai).once('value').then(function(snapshot) {
+                    const cor = snapshot.exists() ? 'existente' : 'nao-existente';
+                    option.classList.add(cor);
+
+                    // Carrega os dados dos alunos para cada nó pai
+                    if (snapshot.exists()) {
+                        const aluno = snapshot.val();
+
+                        // Cria uma nova linha na tabela de alunos para cada aluno
+                        const row = tabelaCorpo.insertRow();
+                        const cellNoPai = row.insertCell(0);
+                        cellNoPai.textContent = no_pai;
+                        const cellNome = row.insertCell(1);
+                        cellNome.textContent = aluno.Nome;
+                        const cellRA = row.insertCell(2);
+                        cellRA.textContent = aluno.RA;
+                        const cellSerie = row.insertCell(3);
+                        cellSerie.textContent = aluno.Serie;
+                        const cellAcoes = row.insertCell(4);
+                        const removerButton = document.createElement('button');
+                        removerButton.textContent = 'Remover';
+                        removerButton.onclick = function() {
+                            excluirAluno(no_pai);
+                        };
+                        cellAcoes.appendChild(removerButton);
+                    }
+                });
+            }
+        }
+
+        // Carrega os alunos e nós pais ao carregar a página
+        window.onload = carregarAlunos;
+    </script>
+
+    <style>
+        #fund {
+            width: 100%;
+            height: 100px;
+            background: rgb(0, 102, 255);
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
+        }
+    </style>
+
+    <div id="fund">
+        <style>
+            .btnf {
+                border-radius: 4px;
+                font-size: 20pt;
+                width: 290px;
+                height: 40px;
+                padding: 0px;
+            }
+        </style>
+        <button class="btnf" onclick="c2()" style="width: 390px;">Acesso avançado ao Sistema.</button>
+
+        <button class="btnf" onclick="c3()">Sistema de registro fixo.</button>
+        <button class="btnf" onclick="c1()" style="width: 390px;">Sistema de registro temporário.</button>
+        <script>
+            function c1() {
+                open("index.htm", "_self")
+            }
+
+            function c2() {
+                open("login.htm", "_self")
+            }
+
+            function c3() {
+                open("registro.htm", "_self")
+            }
+        </script>
+    </div>
+</body>
+
+</html>

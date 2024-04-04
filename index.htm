@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <title>José Vasques Ferrari</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="index.css"/>
+    <link rel="icon" type="image/png" href="logoJV.png">
+
+    <style>
+        body {
+            width: 100%;
+            height: auto;
+            background: url("José\ Vasques.png");
+            background-size: 50% 60%;
+            display: flex;
+            flex-direction: column;
+            margin: 0px;
+        }
+        .weather-container {
+            margin-top: 50px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            border: 1px solid black; /* Adiciona borda à tabela */
+        }
+
+        th, td {
+            border: 1px solid black; /* Adiciona borda às células */
+            text-align: center; /* Centraliza o texto horizontalmente */
+            padding: 8px;
+            min-width: 150px; /* Ajusta o tamanho mínimo das células */
+        }
+
+        th {
+            background-color: rgba(73, 238, 95, 0.5);
+        }
+
+        .search-container {
+            position: relative;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .search-input {
+            margin: 10px;
+            width: 400px;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 195px;
+            cursor: pointer;
+        }
+
+        .btn1 {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <!-- Adicione o script do Firebase sem módulos ES6 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6mPcUShe2Gty4o2ZoAXouzuGJ8m8U9lI",
+  authDomain: "jv-presente.firebaseapp.com",
+  databaseURL: "https://jv-presente-default-rtdb.firebaseio.com",
+  projectId: "jv-presente",
+  storageBucket: "jv-presente.appspot.com",
+  messagingSenderId: "565379728946",
+  appId: "1:565379728946:web:bda7f5491e13aaf09c9e2b",
+  measurementId: "G-XSY1F1J987"
+        };
+
+        // Inicializar o Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Referência para o nó "ALUNOS-NA-ESCOLA"
+        var alunosRef = firebase.database().ref('ALUNOS-NA-ESCOLA');
+
+        // Função para recuperar e exibir os dados de filhos diretos
+        function recuperarDados() {
+            alunosRef.once('value', function(snapshot) {
+                // Limpar o conteúdo anterior, se houver
+                var table = document.getElementById('tabelaAlunos');
+                var firstRow = table.rows[0];
+                table.innerHTML = '';
+                table.appendChild(firstRow); // Adiciona a primeira linha de volta
+
+                // Loop através dos filhos diretos do nó "ALUNOS-NA-ESCOLA"
+                snapshot.forEach(function(childSnapshot) {
+                    var childData = childSnapshot.val();
+                    var row = table.insertRow();
+                    var horarioCell = row.insertCell(0);
+                    var nomeCell = row.insertCell(1);
+                    var raCell = row.insertCell(2);
+                    var serieCell = row.insertCell(3);
+
+                    horarioCell.textContent = childData['horario:'] || '-';
+                    nomeCell.textContent = childSnapshot.key || '-';
+                    raCell.textContent = childData['RA:'] || '-';
+                    serieCell.textContent = childData['Serie:'] || '-';
+                });
+            });
+        }
+
+        // Monitora adições de dados no nó "ALUNOS-NA-ESCOLA" e chama a função recuperarDados
+        alunosRef.on('child_added', function(data) {
+            recuperarDados();
+        });
+
+        // Função para buscar um aluno pelo nome
+        function buscarAluno() {
+            var nomeAluno = document.getElementById('inputAluno').value.trim();
+            if (nomeAluno !== '') {
+                alunosRef.child(nomeAluno).once('value', function(snapshot) {
+                    var alunoData = snapshot.val();
+                    if (alunoData) {
+                        var ra = alunoData['RA:'] || '-';
+                        var serie = alunoData['Serie:'] || '-';
+                        var horario = alunoData['horario:'] || '-';
+                        alert('Nome: ' + nomeAluno + '\nRA: ' + ra + '\nSérie: ' + serie + '\nChegou as: ' + horario + ' horas');
+                    } else {
+                        alert('Aluno não encontrado.');
+                    }
+                });
+            } else {
+                alert('Por favor, insira um nome de aluno.');
+            }
+        }
+    </script>
+</head>
+<body>
+<div style="position:relative; width: auto; height:150px; background-color: rgba(60, 170, 204, 0.9);   
+display:flex; flex-direction:row; justify-content:space-around; margin-bottom:5px;">
+    <div style="padding-top: 20px; width: 230px; height:100%; margin: 0px; position:absolute; left:0px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <button class="btn1" style="margin-top:0px;" onclick="btn1chamou()">Reportar erro</button>
+        <button class="btn1" style="margin-top:0px;" onclick="btn2chamou()">Sistema de ajuda</button>
+        <div class="weather-container">
+            <div style="position: absolute; top:90px; left: 40px; color:white;" id="weather-info"></div>
+        </div>
+
+    </div>
+    <script>
+        // URL da API para Itapeva, SP no wttr.in
+        const apiUrl = 'https://wttr.in/Itapeva,SP?format=%t+%C+%w';
+
+        // Função para obter os dados do clima da API
+        async function getWeather() {
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.text();
+
+                // Exibir os dados na página
+                displayWeather(data);
+            } catch (error) {
+                console.error('Erro clima:', error.message);
+            }
+        }
+
+        // Função para exibir os dados do clima na página
+        function displayWeather(data) {
+            const weatherInfo = document.getElementById('weather-info');
+
+            // Criar o HTML para exibir os dados do clima
+            const html = `<p>${data}</p>`;
+
+            // Inserir o HTML na div weather-info
+            weatherInfo.innerHTML = html;
+        }
+
+        // Chamada da função para obter os dados do clima
+        getWeather();
+    </script>
+
+
+
+
+
+
+
+
+    <style>
+        #fund{
+            width: 100%; height: 100px; background: rgb(0, 102, 255);
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
+        }
+        /* Estilo para o modal */
+        .modal { 
+            display: none; /* Por padrão, o modal estará oculto */
+            position: fixed;
+            z-index: 1; /* Deixe o modal acima de todo o conteúdo */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Adiciona rolagem se necessário */
+            background-color: rgba(0,0,0,0.4); /* Fundo escuro semitransparente */
+        }
+
+        /* Estilo para o conteúdo do modal */
+        .modal-content {
+            border-radius: 10px;
+
+            background-color: #fefefe;
+            margin: 15% auto; /* Centraliza o modal verticalmente */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 30%; /* Largura do modal */
+        }
+
+        /* Estilo para o botão de fechar */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+
+
+
+
+
+<div id="myModal1" class="modal">
+
+    <!-- Conteúdo do modal -->
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span> <!-- Botão de fechar -->
+        <p>Olá! Você encontrou um erro no nosso sistema?</p>
+        <p>Por favor, entre em contato com o responsável pela correção de bugs.</p>
+        <button onclick="chan()">Entrar em contato</button>
+        
+        <script>
+  function chan(){
+  open("https://api.whatsapp.com/send/?phone=5515988163032&text=Ol%C3%A1,+eu+encontrei+um+erro+no+sistema+de+biometria.&type=phone_number&app_absent=0")
+  }
+        </script>
+      </div>
+  
+  </div>
+
+
+
+
+
+<div id="myModal2" class="modal">
+
+    <!-- Conteúdo do modal -->
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span> <!-- Botão de fechar -->
+      <p>Olá! você está com duvida?.</p>
+      <p>Por favor como podemos ajudar?.</p>
+      <button onclick="chan()">Entrar em contato</button>
+    </div>
+  
+  </div>
+  
+  <script>
+      // Função para abrir o modal
+      function btn1chamou() {
+          document.getElementById("myModal1").style.display = "block";
+      }
+      function btn2chamou() {
+          document.getElementById("myModal2").style.display = "block";
+      }
+
+      function closeModal() {
+        document.getElementById("myModal1").style.display = "none";
+          document.getElementById("myModal2").style.display = "none";
+    }
+
+  
+      // Fechar o modal se o usuário clicar fora da área do modal
+      window.onclick = function(event) {
+        var modal = document.getElementById("myModal1");
+        var modal = document.getElementById("myModal2");
+          if (event.target == modal) {
+              modal.style.display = "none";
+          }
+      }
+  </script>
+    </script>
+    <h1 style="color:white; font-size: 90px; margin-top: 7px; font-family: 'Isaque';">Sistema Biométrico JV</h1>
+    <img style="position:absolute; width: 160px; height: 130px; margin-top:14px; right:30px;" src="leitor.png">
+</div>
+<div style=" margin:10px; width: 100%; height: 450px;overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    <div style="overflow-y: auto; width: 1000px;  height: 400px; margin-bottom: 10px; background: rgba(209, 243, 243,0.9); border-radius: 6px; border: 1px solid black">
+        <div class="search-container">
+            <label style="font-size: 20px;"><strong>Buscar aluno no sistema:</strong></label>
+            <input id="inputAluno" type="text" class="search-input" placeholder="Ex: Isaque Samir Bezerra de Melo Silva">
+            <i class="fas fa-search search-icon" onclick="buscarAluno()"></i>
+        </div>
+        <!-- Tabela para exibir os dados -->
+        <table id="tabelaAlunos" style="font-family:'Isaque';">
+            <tr>
+                <th>Horário de entrada</th>
+                <th>Nome do aluno registrado</th>
+                <th>Série que o aluno foi inserido</th>
+                <th>RA escolar do aluno</th>
+
+            </tr>
+        </table>
+    </div>
+</div>
+ <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+<iframe style="background-color: aliceblue; margin-top: 5px; border: 1px black solid; border-radius: 8px; margin-bottom: 30px;" src="testegrafico.htm" width="55%" height="460" frameborder="0"></iframe>
+</div>
+<div id="fund">
+<style>
+.btnf{
+border-radius: 4px;
+font-size: 20pt;
+width: 290px;
+height: 40px;
+padding: 0px;
+}
+</style>
+<button class="btnf" onclick="c2()" style="width: 390px;">Acesso avançado ao Sistema.</button>
+
+<button class="btnf" onclick="c3()">Sistema de registro fixo.</button>
+<button class="btnf" onclick="c1()" style="width: 390px;">Sistema de registro temporário.</button>
+<script>
+function c1 (){
+    open("index.htm","_self")
+}
+function c2 (){
+    open("login.htm","_self")
+}
+function c3 (){
+    open("registro.htm","_self")
+}
+</script>
+</div>
+</body>
+</html>

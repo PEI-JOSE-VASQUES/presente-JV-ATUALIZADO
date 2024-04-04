@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verificar Modal Aberto/Fechado</title>
+<style>
+/* Estilos do modal */
+.modal {
+  display: none; /* Por padrão, o modal está oculto */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  z-index: 9999;
+}
+</style>
+</head>
+<body>
+
+<h1>Verificar Modal Aberto/Fechado</h1>
+
+<!-- Botão para abrir o modal -->
+<button onclick="abrirModal()">Abrir Modal</button>
+
+<!-- O modal -->
+<div id="meuModal" class="modal">
+  <span onclick="fecharModal()" style="cursor: pointer;">&times;</span>
+  <p>Conteúdo do modal</p>
+</div>
+
+<script>
+// Variável global para rastrear o estado do modal
+var modalAberto = false;
+
+// Função para abrir o modal
+function abrirModal() {
+  var modal = document.getElementById('meuModal');
+  modal.style.display = 'block'; // Exibir o modal
+  modalAberto = true; // Atualizar o estado do modal
+  verificarModal(); // Chamar função para verificar o estado do modal
+}
+
+// Função para fechar o modal
+function fecharModal() {
+  var modal = document.getElementById('meuModal');
+  modal.style.display = 'none'; // Ocultar o modal
+  modalAberto = false; // Atualizar o estado do modal
+  verificarModal(); // Chamar função para verificar o estado do modal
+}
+
+// Função para verificar se o modal está aberto ou fechado
+function verificarModal() {
+  if (modalAberto) {
+    console.log('O modal está aberto.');
+  } else {
+    console.log('O modal está fechado.');
+  }
+}
+
+// Chamando a função verificarModal() ao carregar a página para verificar o estado inicial do modal
+window.onload = verificarModal;
+</script>
+
+</body>
+</html>

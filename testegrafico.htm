@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráfico de Presença de Alunos</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            height: 500px;
+             background-color: rgb(209, 217, 224);
+        }
+        canvas {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div style="width: 700px; height: 700px;">
+    <h2>Gráfico de Presença de Alunos ao Longo do Tempo</h2>
+    <canvas id="graficoPresenca" width="800" height="400"></canvas>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6mPcUShe2Gty4o2ZoAXouzuGJ8m8U9lI",
+  authDomain: "jv-presente.firebaseapp.com",
+  databaseURL: "https://jv-presente-default-rtdb.firebaseio.com",
+  projectId: "jv-presente",
+  storageBucket: "jv-presente.appspot.com",
+  messagingSenderId: "565379728946",
+  appId: "1:565379728946:web:bda7f5491e13aaf09c9e2b",
+  measurementId: "G-XSY1F1J987"
+        };
+        
+        // Inicializar o Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Referência para o nó "ALUNOS-NA-ESCOLA"
+        var alunosRef = firebase.database().ref('ALUNOS-NA-ESCOLA');
+
+        // Array para armazenar a contagem de alunos para cada hora
+        var presencaPorHora = Array.from({ length: 10 }, () => 0);
+
+        // Recupera os dados do Firebase e atualiza a contagem de alunos por hora
+        alunosRef.once('value', function(snapshot) {
+            snapshot.forEach(function(childSnapshot) {
+                var horario = childSnapshot.child('horario:').val();
+                if (horario) {
+                    var hora = parseInt(horario.split(':')[0]);
+                    if (hora >= 7 && hora <= 16) {
+                        presencaPorHora[hora - 7]++;
+                    }
+                }
+            });
+
+            // Constrói o gráfico com os dados coletados
+            construirGrafico(presencaPorHora);
+        });
+
+        // Função para construir o gráfico com Chart.js
+        function construirGrafico(data) {
+            var ctx = document.getElementById('graficoPresenca').getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: 10 }, (_, i) => (i + 7) + ':00 horas'),
+                    datasets: [{
+                        label: 'Alunos Presentes',
+                        data: data,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+    scales: {
+        y: {
+            beginAtZero: true,
+            min: 0,
+            max: 300,
+            ticks: {
+                stepSize: 1,
+                maxTicksLimit: 300, // Defina o número de ticks que você deseja exibir
+                callback: function(value, index, values) {
+                    return value;
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

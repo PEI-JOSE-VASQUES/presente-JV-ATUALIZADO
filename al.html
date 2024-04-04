@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style>
+@font-face {
+    font-family: 'isaque';
+    src: url(KdamThmorPro-Regular.ttf);
+}
+</style>
+    <link rel="icon" type="image/png" href="logoJV.png">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presença do Aluno</title>
+<style>
+body{
+height: 100vh;
+background: linear-gradient(to right bottom,white,rgb(176, 178, 234));
+margin: 0px;
+}
+</style>
+</head>
+<body>
+    <style>
+    .btn1e2{background: rgb(217, 224, 240); border-radius: 7px; padding-left: 3px; padding-right: 3px;}
+    </style>
+<div style="border: 1px solid rgb(153, 153, 245); background-color: white; border-radius: 9px; display: flex; flex-direction: row; justify-content: space-around; align-items: center;">
+    <div style=" height: 3%; width: 200px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+        <h2 class="btn1e2">Reportar Falha</h2>
+        <h2 style="margin-top: 0px;"class="btn1e2">Dúvida ?</h2></div>
+    <h1 style="font-size: 50pt; margin: 2px; font-family: 'isaque';">PEI José Vasques Ferrari</h1>
+    <img style="border-radius: 15px;  height: 110px;" src="logoJV.png">
+</div>   
+<h1>Olá (Nome)! Seja bem-vindo ao sistema de presença online da escola PEI José Vasques. Nessa página você poderá ver a sua frequência e administrar os dias de ausência.
+    </h1>
+
+<!-- Adicione o SDK do Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+
+<script>
+  // Initialize Firebase
+  const firebaseConfig = {
+    apiKey: "SuaChaveAPI",
+    authDomain: "seuapp.firebaseapp.com",
+    projectId: "seuapp",
+    storageBucket: "seuapp.appspot.com",
+    messagingSenderId: "SeuID",
+    appId: "SeuAppID"
+  };
+  firebase.initializeApp(firebaseConfig);
+
+  // Autenticação com o Firebase Authentication
+  const auth = firebase.auth();
+  // Você pode adicionar código para autenticar usuários aqui
+
+</script>
+
+</body>
+</html>

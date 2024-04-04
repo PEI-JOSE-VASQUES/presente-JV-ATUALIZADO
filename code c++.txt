@@ -1,0 +1,115 @@
+#include <WiFi.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+#include <time.h>
+#include <IOXhop_FirebaseESP32.h>
+
+const char *ssid = "Notebook Isaque Samir";
+const char *password = "12345678";
+const char *host = "jv-presente-default-rtdb.firebaseio.com";
+const char *auth = "rzB4LE4Y7qGhTfKSL81GBO4rufRYSxs46VSF4nnI";
+
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "a.ntp.br", -3 * 3600, 60000);
+
+// Variável para controlar o valor que você quer verificar no Firebase
+int suaVariavelDeComparacao = 1; // Substitua este valor pelo seu valor de comparação
+String ultimoHorario = ""; // Armazena o último horário registrado
+bool horarioDefinido = false; // Indica se o horário já foi definido
+bool historicoDefinido = false; // Indica se o nó de histórico já foi definido
+
+// Variáveis globais para armazenar dia, mês e ano atuais
+int diaAtual;
+int mesAtual;
+int anoAtual;
+
+// Variável global para armazenar a data atual em formato de string fixa
+String dataAtualFixa;
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("Conectando ao WiFi...");
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("WiFi conectado");
+  timeClient.begin();
+  Firebase.begin(host, auth);
+}
+
+void loop() {
+  timeClient.update();
+  String formattedTime = timeClient.getFormattedTime();
+  Serial.println(formattedTime);
+
+  // Obtendo o horário atual
+  time_t now = timeClient.getEpochTime();
+  struct tm *timeinfo = localtime(&now);
+  char horario[6]; // para armazenar "HH:MM"
+  strftime(horario, sizeof(horario), "%H:%M", timeinfo);
+
+  // Obtendo o dia, mês e ano atuais
+  diaAtual = timeinfo->tm_mday;
+  mesAtual = timeinfo->tm_mon + 1; // tm_mon começa de 0 (janeiro é 0)
+  anoAtual = timeinfo->tm_year + 1900; // tm_year conta os anos desde 1900
+
+  // Construindo dinamicamente o nome do nó que queremos verificar
+  String alunoNode = "/ALUNOS-NA-ESCOLA/A" + String(suaVariavelDeComparacao);
+
+  // Verificando se o nó existe no Firebase
+  if (!Firebase.getBool(alunoNode + "/existe:")) {
+    // Obtendo o nome do aluno correspondente ao número do aluno
+    String nomeAluno = Firebase.getString("/ALUNOS-NO-SISTEMA/A" + String(suaVariavelDeComparacao) + "/Nome");
+    String nomeRA = Firebase.getString("/ALUNOS-NO-SISTEMA/A" + String(suaVariavelDeComparacao) + "/Serie");
+    String nomeSerie = Firebase.getString("/ALUNOS-NO-SISTEMA/A" + String(suaVariavelDeComparacao) + "/RA");
+
+    // Verifica se o nó "horario:" já foi definido
+    if (!horarioDefinido) {
+      // Definindo o valor de "horario" apenas se for a primeira vez
+      String horarioString = String(horario);
+      Firebase.setString("ALUNOS-NA-ESCOLA/" + nomeAluno + "/horario:", horarioString);
+
+      // Registrando a adição do nó com o nome do aluno
+      Serial.print("Nó adicionado com sucesso para o aluno ");
+      Serial.println(nomeAluno);
+      Serial.println("RA: " + nomeRA);
+      Serial.println("Serie: " + nomeSerie);
+      Serial.println("Horário: " + horarioString);
+
+      // Atualizando o último horário registrado
+      ultimoHorario = horarioString;
+      horarioDefinido = true;
+    }
+
+    // Definindo que o nó existe no Firebase
+    Firebase.setBool("ALUNOS-NA-ESCOLA/" + nomeAluno + "/existe:", true);
+    Firebase.setString("ALUNOS-NA-ESCOLA/" + nomeAluno + "/RA:", nomeRA);
+    Firebase.setString("ALUNOS-NA-ESCOLA/" + nomeAluno + "/Serie:", nomeSerie);
+    
+    // Verificando se o nó "Historico" já foi definido
+    if (!historicoDefinido) {
+      // Definindo o nó de histórico apenas se for a primeira vez
+      Firebase.setString("Historico/", ""); // Criar o nó "Historico"
+      historicoDefinido = true;
+    }
+    
+    // Verifica se a data atual fixa já foi definida
+    if (dataAtualFixa == "") {
+      // Constrói a string fixa da data atual
+      dataAtualFixa = String(diaAtual) + "-" + String(mesAtual) + "-" + String(anoAtual);
+      
+      // Verifica se a data atual já existe no histórico
+      if (!Firebase.getBool("Historico/" + dataAtualFixa + "/existe")) {
+        // Adiciona a nova data ao histórico
+        Firebase.setBool("Historico/" + dataAtualFixa + "/existe", true);
+      }
+    }
+
+    // Adicionando registro ao histórico usando a data atual fixa
+    Firebase.setString("Historico/" + dataAtualFixa + "/" + nomeAluno, nomeRA);
+  }
+
+  delay(1000); // Aguardando 1 segundo antes de fazer a próxima iteração
+}

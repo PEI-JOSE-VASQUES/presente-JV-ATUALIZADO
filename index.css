@@ -1,0 +1,15 @@
+@font-face {
+    font-family: 'Isaque';
+    src: url("KdamThmorPro-Regular.ttf");
+}
+.btn1{
+     background: rgb(87, 87, 175); border:1px black solid; border-radius: 5px; font-size:20px; color:white;
+
+    }
+.colu{
+margin: 0px;
+color:black;
+font-size: 18px;
+text-align: center;
+font-family: 'Arial';
+}
